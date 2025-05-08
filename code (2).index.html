@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reservas - Sara Peluqueros</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #fdf7f1; /* Un crema muy suave, cálido */
+            color: #4a3f35; /* Marrón oscuro para texto principal */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.6;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 980px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #7a5c57; /* Tono terracota suave */
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        .salon-address-header {
+            text-align: center;
+            color: #8c7061;
+            font-size: 1em;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #8B4513; /* Marrón silla de montar */
+            text-align: left;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            border-bottom: 2px solid #e0c1b3;
+            padding-bottom: 10px;
+        }
+
+        .info-cliente, .gestion-citas, .calendario-vista, .mensajes-generados {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0dcd7; /* Borde más suave */
+            border-radius: 8px;
+            background-color: #fefdfb;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #5c4d43;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="date"],
+        input[type="time"],
+        select {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin-bottom: 18px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1em;
+            background-color: #fff;
+            color: #4a3f35;
+        }
+        input:focus, select:focus {
+            border-color: #a0522d; /* Marrón siena en foco */
+            box-shadow: 0 0 0 3px rgba(160, 82, 45, 0.15);
+            outline: none;
+        }
+
+        button {
+            background-color: #8B4513; /* Marrón silla de montar */
+            color: white;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-right: 10px;
+            min-width: 160px;
+        }
+
+        button:hover {
+            background-color: #A0522D; /* Marrón siena */
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0px);
+        }
+
+        button.secondary {
+            background-color: #D2B48C; /* Tan */
+            color: #5c4d43; /* Texto más oscuro para mejor contraste */
+        }
+        button.secondary:hover {
+            background-color: #C1A075;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            color: #777;
+        }
+        button:disabled:hover {
+            background-color: #ccc;
+            transform: none;
+        }
+
+        #timeSlotsContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .time-slot {
+            padding: 12px 10px;
+            border: 1px solid #e0dcd7;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            background-color: #e9f5e9; /* Verde claro disponible */
+            color: #3c763d; /* Verde oscuro para texto */
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .time-slot:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            border-color: #c3e6cb;
+        }
+
+        .time-slot.booked {
+            background-color: #f8d7da; /* Rojo claro reservado */
+            color: #721c24;
+            cursor: not-allowed;
+            text-decoration: line-through;
+            font-style: italic;
+        }
+        .time-slot.booked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .time-slot.selected {
+            background-color: #ffe082; /* Amarillo para selección */
+            border-color: #ffc107;
+            color: #856404; /* Texto oscuro para amarillo */
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.4);
+        }
+
+        #generatedMessage {
+            white-space: pre-wrap;
+            background-color: #e6f3ff; /* Azul muy pálido para mensaje */
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #bce8f1; /* Borde azul claro */
+            margin-top: 15px;
+            cursor: text;
+            font-size: 0.95em;
+            line-height: 1.7;
+            color: #31708f; /* Texto azul oscuro */
+        }
+        #infoCitaSeleccionada {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f3f2f1; /* Gris muy claro */
+            border-radius: 6px;
+            font-size: 0.9em;
+            line-height: 1.5;
+            border-left: 4px solid #D2B48C; /* Tan */
+        }
+        .whatsapp-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 18px;
+            background-color: #25D366;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.95em;
+            transition: background-color 0.2s ease;
+        }
+        .whatsapp-link:hover {
+            background-color: #1EAE54;
+        }
+        .whatsapp-icon::before {
+            content: '📱'; /* Podría ser un SVG o FontAwesome si se permiten externos */
+            margin-right: 8px;
+        }
+
+        .instructions {
+            background-color: #fff9e6; /* Amarillo muy pálido, tipo nota */
+            color: #7a5c57;
+            padding: 20px;
+            border: 1px solid #ffe0b2;
+            border-left: 5px solid #ffb74d; /* Naranja claro para destacar */
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .instructions strong {
+            color: #8B4513;
+        }
+        .instructions ul {
+            margin-top: 10px;
+            padding-left: 0;
+            list-style-type: none;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+            padding-left: 25px;
+            position: relative;
+        }
+        .instructions li::before {
+            content: '✂️'; /* Emoji tijeras */
+            position: absolute;
+            left: 0;
+            top: 1px;
+            font-size: 1.1em;
+        }
+        .salon-info {
+            margin-top: 15px;
+            font-weight: 500;
+        }
+        .salon-info a {
+            color: #25D366;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .salon-info a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Sara Peluqueros</h1>
+        <p class="salon-address-header">Calle Labradores 18, Logroño | Teléfono/WhatsApp: 
+            <a href="https://wa.me/34615047788" target="_blank">615 047 788</a>
+        </p>
+
+        <div class="instructions">
+            <strong>📢 Instrucciones para Clientes:</strong>
+            <p>Para solicitar tu cita en <strong>Sara Peluqueros</strong>, envíanos un mensaje por WhatsApp al <a href="https://wa.me/34615047788" target="_blank"><strong>615 047 788</strong></a> con la siguiente información:</p>
+            <ul>
+                <li>Tu Nombre completo</li>
+                <li>Servicio deseado (ej: corte mujer, mechas balayage, peinado boda)</li>
+                <li>Fecha y Hora que te vendría bien</li>
+                <li>Tu Número de teléfono (si es diferente al que nos escribes, para la confirmación)</li>
+            </ul>
+            <p>Revisaremos la agenda y te contactaremos lo antes posible para confirmar o proponerte alternativas. ¡Gracias!</p>
+            <div class="salon-info">
+                <strong>Sara Peluqueros</strong><br>
+                📍 Calle Labradores 18, Logroño<br>
+                📞 <a href="https://wa.me/34615047788" target="_blank">615 047 788</a> (Citas por WhatsApp)
+            </div>
+        </div>
+
+        <div class="info-cliente">
+            <h2>1. Registrar Solicitud del Cliente</h2>
+            <label for="clientName">Nombre del Cliente:</label>
+            <input type="text" id="clientName" placeholder="Ej: Laura Martínez">
+
+            <label for="service">Servicio Solicitado:</label>
+            <input type="text" id="service" placeholder="Ej: Corte y Color">
+
+            <label for="clientPhone">Número de Teléfono del Cliente (para WhatsApp/SMS):</label>
+            <input type="tel" id="clientPhone" placeholder="Ej: 600112233 o +34600112233">
+
+            <label for="desiredDate">Fecha Deseada por el Cliente:</label>
+            <input type="date" id="desiredDate">
+
+            <label for="desiredTime">Hora Deseada por el Cliente:</label>
+            <input type="time" id="desiredTime" step="1800"> <!-- step 1800s = 30 min -->
+        </div>
+
+        <div class="calendario-vista">
+            <h2>2. Verificar Disponibilidad y Seleccionar Horario</h2>
+            <label for="displayDate">Seleccionar Fecha para Ver/Gestionar Agenda:</label>
+            <input type="date" id="displayDate">
+            <div id="timeSlotsContainer">
+                <!-- Los slots de tiempo se generarán aquí -->
+            </div>
+            <div id="infoCitaSeleccionada">
+                <!-- Info de la cita seleccionada para cancelar/modificar -->
+            </div>
+        </div>
+
+        <div class="gestion-citas">
+            <h2>3. Acciones de Cita</h2>
+            <button id="bookButton" disabled>Confirmar y Reservar Cita</button>
+            <button id="cancelButton" class="secondary" disabled>Cancelar Cita Seleccionada</button>
+        </div>
+        
+        <div class="mensajes-generados">
+            <h2>4. Mensajes para Enviar al Cliente (Copiar y Pegar)</h2>
+            <div id="generatedMessageContainer">
+                <pre id="generatedMessage">Aquí se mostrará el mensaje generado para enviar...</pre>
+                <a href="#" id="whatsappMessageLink" class="whatsapp-link" target="_blank" style="display:none;">
+                    <span class="whatsapp-icon"></span>Enviar Mensaje por WhatsApp
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SALON_NAME = "Sara Peluqueros";
+        const SALON_ADDRESS = "Calle Labradores 18, Logroño";
+        const SALON_CONTACT_PHONE_WHATSAPP = "615047788"; // Para mensajes y enlaces wa.me
+        const SALON_CONTACT_PHONE_INTERNATIONAL = "34" + SALON_CONTACT_PHONE_WHATSAPP; // Para el enlace wa.me
+
+        const operatingHours = {
+            // 0: Domingo, 1: Lunes, ..., 6: Sábado
+            1: { start: "09:30", end: "18:30" }, // Lunes
+            2: { start: "09:30", end: "18:30" }, // Martes
+            3: { start: "09:30", end: "18:30" }, // Miércoles
+            4: { start: "09:30", end: "18:30" }, // Jueves
+            5: { start: "09:30", end: "18:30" }, // Viernes
+            6: { start: "09:30", end: "14:00" }  // Sábado
+        };
+        const appointmentInterval = 30; // minutos
+        const LOCAL_STORAGE_KEY = 'appointments_sara_peluqueros_v1';
+        let appointments = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || {}; 
+        let selectedSlotDateTime = null; 
+
+        const clientNameInput = document.getElementById('clientName');
+        const serviceInput = document.getElementById('service');
+        const clientPhoneInput = document.getElementById('clientPhone');
+        const desiredDateInput = document.getElementById('desiredDate');
+        const desiredTimeInput = document.getElementById('desiredTime');
+        
+        const displayDateInput = document.getElementById('displayDate');
+        const timeSlotsContainer = document.getElementById('timeSlotsContainer');
+        const bookButton = document.getElementById('bookButton');
+        const cancelButton = document.getElementById('cancelButton');
+        const generatedMessageDiv = document.getElementById('generatedMessage');
+        const whatsappMessageLink = document.getElementById('whatsappMessageLink');
+        const infoCitaSeleccionadaDiv = document.getElementById('infoCitaSeleccionada');
+
+        function saveAppointments() {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appointments));
+        }
+
+        function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        function minutesToTime(totalMinutes) {
+            const hours = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
+            const minutes = (totalMinutes % 60).toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        function formatDateForDisplay(dateStr) { // YYYY-MM-DD -> DD/MM/YYYY
+            const [year, month, day] = dateStr.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        function generateTimeSlots(dateStr) {
+            timeSlotsContainer.innerHTML = '';
+            infoCitaSeleccionadaDiv.innerHTML = '';
+            bookButton.disabled = true;
+            cancelButton.disabled = true;
+            selectedSlotDateTime = null; 
+            generatedMessageDiv.textContent = 'Selecciona una fecha y luego un horario para ver opciones.';
+            whatsappMessageLink.style.display = 'none';
+
+
+            if (!dateStr) {
+                timeSlotsContainer.innerHTML = '<p>Por favor, seleccione una fecha para ver la disponibilidad.</p>';
+                return;
+            }
+
+            const date = new Date(dateStr + 'T00:00:00'); 
+            const dayOfWeek = date.getDay(); 
+
+            if (!operatingHours[dayOfWeek]) {
+                timeSlotsContainer.innerHTML = `<p>💤 ${SALON_NAME} está cerrado este día. Por favor, elige otro día.</p>`;
+                return;
+            }
+
+            const { start, end } = operatingHours[dayOfWeek];
+            let currentTime = timeToMinutes(start);
+            const endTime = timeToMinutes(end);
+
+            const slots = [];
+            while (currentTime < endTime) {
+                slots.push(minutesToTime(currentTime));
+                currentTime += appointmentInterval;
+            }
+
+            if (slots.length === 0) {
+                timeSlotsContainer.innerHTML = '<p>No hay horarios configurados para este día.</p>';
+                return;
+            }
+            
+            slots.forEach(time => {
+                const slotKey = `${dateStr}_${time}`;
+                const slotDiv = document.createElement('div');
+                slotDiv.classList.add('time-slot');
+                slotDiv.textContent = time;
+                slotDiv.dataset.datetime = slotKey;
+
+                if (appointments[slotKey]) {
+                    slotDiv.classList.add('booked');
+                    slotDiv.title = `Reservado por: ${appointments[slotKey].clientName}\nServicio: ${appointments[slotKey].service}\nTel: ${appointments[slotKey].clientPhone}`;
+                }
+
+                slotDiv.addEventListener('click', () => handleSlotClick(slotDiv, dateStr, time, slotKey));
+                timeSlotsContainer.appendChild(slotDiv);
+            });
+        }
+        
+        function handleSlotClick(slotDiv, dateStr, time, slotKey) {
+            document.querySelectorAll('.time-slot.selected').forEach(el => el.classList.remove('selected'));
+            
+            infoCitaSeleccionadaDiv.innerHTML = ''; 
+            generatedMessageDiv.textContent = 'Aquí se mostrará el mensaje generado...';
+            whatsappMessageLink.style.display = 'none';
+
+            if (slotDiv.classList.contains('booked')) {
+                selectedSlotDateTime = slotKey;
+                slotDiv.classList.add('selected'); 
+                const bookingDetails = appointments[slotKey];
+                infoCitaSeleccionadaDiv.innerHTML = `
+                    <strong>Cita Reservada:</strong><br>
+                    🗓️ Fecha: ${formatDateForDisplay(dateStr)}, Hora: ${time}<br>
+                    👤 Cliente: ${bookingDetails.clientName}<br>
+                    💇 Servicio: ${bookingDetails.service}<br>
+                    📱 Teléfono: ${bookingDetails.clientPhone}
+                `;
+                cancelButton.disabled = false;
+                bookButton.disabled = true; 
+                // Generar mensaje de recordatorio o para contactar por si acaso
+                const reminderMsg = `Hola ${bookingDetails.clientName.split(' ')[0]},\nSolo para recordarte tu cita en ${SALON_NAME} (${SALON_ADDRESS}) el ${formatDateForDisplay(dateStr)} a las ${time} para ${bookingDetails.service}.\n\n¡Te esperamos!\n${SALON_NAME}\n${SALON_CONTACT_PHONE_WHATSAPP}`;
+                generatedMessageDiv.textContent = reminderMsg;
+                prepareWhatsappLink(bookingDetails.clientPhone, reminderMsg);
+
+            } else {
+                selectedSlotDateTime = slotKey; 
+                slotDiv.classList.add('selected'); 
+                infoCitaSeleccionadaDiv.innerHTML = `
+                    <strong>Slot Seleccionado para Nueva Reserva:</strong><br>
+                    🗓️ Fecha: ${formatDateForDisplay(dateStr)}, Hora: ${time}
+                `;
+                cancelButton.disabled = true;
+                bookButton.disabled = !areClientInputsValid(false); // Habilitar si los campos de cliente ya están llenos
+                
+                desiredDateInput.value = dateStr; // Autocompletar fecha deseada
+                desiredTimeInput.value = time; // Autocompletar hora deseada
+
+                // Generar borrador de mensaje de confirmación si los datos del cliente están presentes
+                if (areClientInputsValid(false)) {
+                     const tempConfirmMsg = `✨ ¡Cita casi lista en ${SALON_NAME}!\n\nHola ${clientNameInput.value.trim()},\nTenemos un hueco para ti:\n\n🗓️ Fecha: ${formatDateForDisplay(dateStr)}\n⏰ Hora: ${time}\n💇 Servicio: ${serviceInput.value.trim()}\n\n📍 ${SALON_ADDRESS}\n\nPor favor, confirma si te va bien para reservarlo.\n${SALON_NAME} - ${SALON_CONTACT_PHONE_WHATSAPP}`;
+                     generatedMessageDiv.textContent = tempConfirmMsg;
+                     prepareWhatsappLink(clientPhoneInput.value.trim(), tempConfirmMsg);
+                } else {
+                    generatedMessageDiv.textContent = `Slot ${time} del ${formatDateForDisplay(dateStr)} seleccionado. Completa los datos del cliente para reservar.`;
+                }
+            }
+        }
+
+        function areClientInputsValid(showAlerts = true) {
+            if (!clientNameInput.value.trim()) { if(showAlerts) alert("Por favor, ingrese el nombre del cliente."); return false; }
+            if (!serviceInput.value.trim()) { if(showAlerts) alert("Por favor, ingrese el servicio solicitado."); return false; }
+            if (!clientPhoneInput.value.trim()) { if(showAlerts) alert("Por favor, ingrese el teléfono del cliente."); return false; }
+            return true;
+        }
+        
+        [clientNameInput, serviceInput, clientPhoneInput].forEach(input => {
+            input.addEventListener('input', () => {
+                if (selectedSlotDateTime && !appointments[selectedSlotDateTime]) { // Si hay un slot libre seleccionado
+                    bookButton.disabled = !areClientInputsValid(false);
+                    // Actualizar mensaje borrador si se cambian datos del cliente
+                     if (areClientInputsValid(false) && selectedSlotDateTime) {
+                        const [date, time] = selectedSlotDateTime.split('_');
+                        const tempConfirmMsg = `✨ ¡Cita casi lista en ${SALON_NAME}!\n\nHola ${clientNameInput.value.trim()},\nTenemos un hueco para ti:\n\n🗓️ Fecha: ${formatDateForDisplay(date)}\n⏰ Hora: ${time}\n💇 Servicio: ${serviceInput.value.trim()}\n\n📍 ${SALON_ADDRESS}\n\nPor favor, confirma si te va bien para reservarlo.\n${SALON_NAME} - ${SALON_CONTACT_PHONE_WHATSAPP}`;
+                        generatedMessageDiv.textContent = tempConfirmMsg;
+                        prepareWhatsappLink(clientPhoneInput.value.trim(), tempConfirmMsg);
+                    }
+                }
+            });
+        });
+
+
+        displayDateInput.addEventListener('change', (e) => {
+            generateTimeSlots(e.target.value);
+        });
+
+        desiredDateInput.addEventListener('change', (e) => {
+            if(e.target.value && displayDateInput.value !== e.target.value) {
+                 displayDateInput.value = e.target.value; // Sincronizar con el calendario principal
+                 generateTimeSlots(e.target.value);
+            }
+             checkDesiredSlotAvailability();
+        });
+        desiredTimeInput.addEventListener('change', checkDesiredSlotAvailability);
+        clientPhoneInput.addEventListener('blur', checkDesiredSlotAvailability);
+
+
+        bookButton.addEventListener('click', () => {
+            if (!selectedSlotDateTime) {
+                alert("Por favor, seleccione un horario disponible en el calendario.");
+                return;
+            }
+            if (appointments[selectedSlotDateTime]) {
+                alert("Este horario ya está reservado. Seleccione otro.");
+                return;
+            }
+            if (!areClientInputsValid()) return;
+
+            const [date, time] = selectedSlotDateTime.split('_');
+
+            appointments[selectedSlotDateTime] = {
+                clientName: clientNameInput.value.trim(),
+                service: serviceInput.value.trim(),
+                clientPhone: clientPhoneInput.value.trim()
+            };
+            saveAppointments();
+            generateTimeSlots(date); // Refresh display, esto deseleccionará y reseteará botones
+
+            const confirmationMsg = `✅ ¡Cita Confirmada en ${SALON_NAME}!\n\nHola ${clientNameInput.value.trim()},\n\nTu cita está confirmada:\n💇 Servicio: ${serviceInput.value.trim()}\n🗓️ Fecha: ${formatDateForDisplay(date)}\n⏰ Hora: ${time}\n\n📍 Te esperamos en ${SALON_ADDRESS}.\n\nSi necesitas cambiar o cancelar, avísanos con antelación.\n¡Muchas gracias!\n${SALON_NAME}\n${SALON_CONTACT_PHONE_WHATSAPP}`;
+            generatedMessageDiv.textContent = confirmationMsg;
+            prepareWhatsappLink(clientPhoneInput.value.trim(), confirmationMsg);
+            
+            // Opcional: Limpiar campos de cliente después de reservar
+            // clientNameInput.value = '';
+            // serviceInput.value = '';
+            // clientPhoneInput.value = '';
+            // desiredDateInput.value = '';
+            // desiredTimeInput.value = '';
+        });
+
+        cancelButton.addEventListener('click', () => {
+            if (!selectedSlotDateTime || !appointments[selectedSlotDateTime]) {
+                alert("Por favor, seleccione una cita reservada para cancelar.");
+                return;
+            }
+
+            const bookingToCancel = appointments[selectedSlotDateTime];
+            const [date, time] = selectedSlotDateTime.split('_');
+
+            if (confirm(`¿Está seguro de cancelar la cita de ${bookingToCancel.clientName} para el ${formatDateForDisplay(date)} a las ${time} (${bookingToCancel.service})?`)) {
+                const clientPhoneForCancellation = bookingToCancel.clientPhone; // Guardar antes de borrar
+                delete appointments[selectedSlotDateTime];
+                saveAppointments();
+                generateTimeSlots(date); // Refresh display
+
+                const cancellationMsg = `ℹ️ Cita Cancelada - ${SALON_NAME}\n\nHola ${bookingToCancel.clientName},\n\nHemos procesado la cancelación de tu cita:\n💇 Servicio: ${bookingToCancel.service}\n🗓️ Fecha: ${formatDateForDisplay(date)}\n⏰ Hora: ${time}\n\nEsperamos verte pronto.\n${SALON_NAME}\n${SALON_CONTACT_PHONE_WHATSAPP}`;
+                generatedMessageDiv.textContent = cancellationMsg;
+                prepareWhatsappLink(clientPhoneForCancellation, cancellationMsg);
+            }
+        });
+
+        function checkDesiredSlotAvailability() {
+            const date = desiredDateInput.value;
+            const time = desiredTimeInput.value;
+            const clientName = clientNameInput.value.trim();
+            const clientPhone = clientPhoneInput.value.trim();
+
+            if (!date || !time) return;
+
+            // Sincronizar calendario principal si la fecha deseada cambia
+            if (displayDateInput.value !== date) {
+                displayDateInput.value = date;
+                generateTimeSlots(date); // Esto también preseleccionará si el slot está libre
+            }
+
+            const slotKey = `${date}_${time}`;
+            const slotDiv = document.querySelector(`.time-slot[data-datetime="${slotKey}"]`);
+
+            if (slotDiv && !slotDiv.classList.contains('booked')) {
+                // El slot deseado está libre, preseleccionarlo
+                if (!slotDiv.classList.contains('selected')) {
+                    handleSlotClick(slotDiv, date, time, slotKey);
+                }
+                 // El mensaje ya se genera en handleSlotClick si los datos del cliente están
+            } else if (appointments[slotKey]) {
+                // Slot deseado está OCUPADO
+                if (!clientName || !clientPhone) {
+                    generatedMessageDiv.textContent = `El horario ${time} del ${formatDateForDisplay(date)} está ocupado. \nCompleta nombre y teléfono del cliente para sugerir alternativas.`;
+                    whatsappMessageLink.style.display = 'none';
+                    return;
+                }
+
+                let suggestionMsg = `😕 Hola ${clientName},\n\nEl horario que solicitaste (${time} del ${formatDateForDisplay(date)}) ya no está disponible.`;
+                
+                const dayOfWeek = new Date(date + 'T00:00:00').getDay();
+                let freeSlotsThisDay = [];
+
+                if (operatingHours[dayOfWeek]) {
+                    const { start, end } = operatingHours[dayOfWeek];
+                    let currentIterationTime = timeToMinutes(start);
+                    const endTimeOp = timeToMinutes(end);
+
+                    while (currentIterationTime < endTimeOp) {
+                        const slot = minutesToTime(currentIterationTime);
+                        if (!appointments[`${date}_${slot}`]) {
+                            freeSlotsThisDay.push(slot);
+                        }
+                        currentIterationTime += appointmentInterval;
+                    }
+                }
+
+                if (freeSlotsThisDay.length > 0) {
+                    suggestionMsg += `\n\nPara el ${formatDateForDisplay(date)}, tenemos estos huecos libres:\n- ${freeSlotsThisDay.join('\n- ')}`;
+                } else {
+                    suggestionMsg += `\n\nNo quedan otros huecos disponibles para el ${formatDateForDisplay(date)}.`;
+                }
+                suggestionMsg += `\n\n¿Te vendría bien alguno de estos o prefieres que miremos otra fecha?\n\nGracias,\n${SALON_NAME}\n${SALON_CONTACT_PHONE_WHATSAPP}`;
+                
+                generatedMessageDiv.textContent = suggestionMsg;
+                prepareWhatsappLink(clientPhone, suggestionMsg);
+            }
+        }
+
+        function prepareWhatsappLink(phone, message) {
+            if (!phone || !message) {
+                whatsappMessageLink.style.display = 'none';
+                return;
+            }
+            const cleanPhone = phone.replace(/\s+/g, '').replace('+', '');
+            const internationalPhone = cleanPhone.startsWith('34') || cleanPhone.length < 9 ? cleanPhone : '34' + cleanPhone;
+            
+            const encodedMsg = encodeURIComponent(message);
+            whatsappMessageLink.href = `https://wa.me/${internationalPhone}?text=${encodedMsg}`;
+            whatsappMessageLink.style.display = 'inline-block';
+        }
+
+        // Inicialización
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        
+        displayDateInput.value = todayStr;
+        displayDateInput.min = todayStr; 
+        desiredDateInput.min = todayStr;
+
+        generateTimeSlots(todayStr);
+    </script>
+</body>
+</html>
